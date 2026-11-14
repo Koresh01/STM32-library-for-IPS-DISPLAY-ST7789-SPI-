@@ -295,5 +295,112 @@ void ST7789_DrawString(uint16_t x, uint16_t y, const char *str, const FontDef *f
 	}
 }
 
+// Преобразование Unicode-кода русской буквы
+// в индекс символа в RusFont5x7_Data[].
+static int16_t ST7789_RUS_GetCharIndex(uint16_t code)
+{
+    // Заглавные А-Е
+    if (code >= 0x0410 && code <= 0x0415)
+        return code - 0x0410;
+
+    // Заглавная Ё
+    if (code == 0x0401)
+        return 6;
+
+    // Заглавные Ж-Я
+    if (code >= 0x0416 && code <= 0x042F)
+        return code - 0x0410 + 1;
+
+    // Строчные а-е
+    if (code >= 0x0430 && code <= 0x0435)
+        return 33 + (code - 0x0430);
+
+    // Строчная ё
+    if (code == 0x0451)
+        return 39;
+
+    // Строчные ж-я
+    if (code >= 0x0436 && code <= 0x044F)
+        return 33 + (code - 0x0430) + 1;
+
+    return -1;
+}
 
 
+// Отрисовка одного русского символа UTF-8
+void ST7789_DrawCharRUS(uint16_t x, uint16_t y, const char *c, const FontDef *font, uint16_t color)
+{
+    if (c == NULL || font == NULL)
+        return;
+
+    uint8_t byte1 = (uint8_t)c[0];
+
+    // ASCII: английские буквы, цифры, знаки
+    if (byte1 < 0x80)
+    {
+        ST7789_DrawChar(x, y, (char)byte1, &Font_5x7, color);
+        return;
+    }
+
+    // Русские символы UTF-8 начинаются с D0 или D1
+    if ((byte1 != 0xD0 && byte1 != 0xD1) || c[1] == '\0')
+        return;
+
+    uint8_t byte2 = (uint8_t)c[1];
+
+    if ((byte2 & 0xC0) != 0x80)
+        return;
+
+    // Собираем Unicode-код из двух байтов UTF-8
+    uint16_t code = 0x0400 |
+                    ((byte1 & 0x0F) << 6) |
+                    (byte2 & 0x3F);
+
+    // Для D1 корректируем старшую часть
+    if (byte1 == 0xD1)
+        code += 0x40;
+
+    int16_t index = ST7789_RUS_GetCharIndex(code);
+
+    if (index < 0)
+        return;
+
+    uint16_t data_index = index * font->Width;
+
+    // Рисуем символ из массива шрифта
+    for (uint8_t column = 0; column < font->Width; column++)
+    {
+        uint8_t line = font->Data[data_index + column];
+
+        for (uint8_t row = 0; row < font->Height; row++)
+        {
+            if (line & (1 << row))
+            {
+                ST7789_DrawPixel(x + column, y + row, color);
+            }
+        }
+    }
+}
+
+
+// Отрисовка строки с поддержкой UTF-8
+void ST7789_DrawStringRUS(uint16_t x, uint16_t y, const char *str, const FontDef *font, uint16_t color)
+{
+    if (str == NULL || font == NULL)
+        return;
+
+    while (*str != '\0')
+    {
+        uint8_t byte1 = (uint8_t)*str;
+
+        ST7789_DrawCharRUS(x, y, str, font, color);
+
+        // Русская буква в UTF-8 занимает 2 байта
+        if (byte1 == 0xD0 || byte1 == 0xD1)
+            str += 2;
+        else
+            str++;
+
+        x += font->Width + 1;
+    }
+}

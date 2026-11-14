@@ -55,4 +55,7 @@ void ST7789_DrawCircle(uint16_t x0, uint16_t y0, uint16_t radius, uint16_t color
 void ST7789_DrawChar(uint16_t x, uint16_t y, char c, const FontDef *font, uint16_t color);
 void ST7789_DrawString(uint16_t x, uint16_t y, const char *str, const FontDef *font, uint16_t color);
 
+void ST7789_DrawCharRUS(uint16_t x, uint16_t y, const char *c, const FontDef *font, uint16_t color);
+void ST7789_DrawStringRUS(uint16_t x, uint16_t y, const char *str, const FontDef *font, uint16_t color);
+
 #endif

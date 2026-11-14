@@ -11,5 +11,6 @@ typedef struct
 } FontDef;
 
 extern const FontDef Font_5x7;
+extern const FontDef RusFont_5x7;
 
 #endif
