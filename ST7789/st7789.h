@@ -1,13 +1,29 @@
-#ifndef __ST7789_H
-#define __ST7789_H
 
-#include "main.h"
+#ifndef ST7789_H
+#define ST7789_H
+
+#include "stm32f1xx_hal.h"
 #include "fonts.h"
+#include <stdint.h>
 
-/* Размер дисплея */
+/* Структура экземпляра дисплея */
+typedef struct
+{
+    SPI_HandleTypeDef *spi;
 
-#define ST7789_WIDTH      240
-#define ST7789_HEIGHT     240
+    GPIO_TypeDef *cs_port;
+    uint16_t cs_pin;
+
+    GPIO_TypeDef *dc_port;
+    uint16_t dc_pin;
+
+    GPIO_TypeDef *res_port;
+    uint16_t res_pin;
+
+    uint16_t width;
+    uint16_t height;
+
+} ST7789_HandleTypeDef;
 
 
 /* Цвета RGB565 */
@@ -21,41 +37,93 @@
 #define ST7789_CYAN       0x07FF
 #define ST7789_MAGENTA    0xF81F
 
-/*=============================
-        Команды ST7789
-==============================*/
 
-#define ST7789_SWRESET    0x01    // Программный сброс
-#define ST7789_SLPOUT     0x11    // Выход из режима сна
-#define ST7789_DISPON     0x29    // Включить дисплей
+/* Команды ST7789 */
 
-#define ST7789_CASET      0x2A    // Задать область по X
-#define ST7789_RASET      0x2B    // Задать область по Y
-#define ST7789_RAMWR      0x2C    // Начать запись пикселей
+#define ST7789_SWRESET    0x01
+#define ST7789_SLPOUT     0x11
+#define ST7789_DISPON     0x29
 
-#define ST7789_MADCTL     0x36    // Настроить ориентацию изображения
-#define ST7789_COLMOD     0x3A    // Задать формат цвета
-#define ST7789_INVON      0x21    // Включить инверсию цветов
+#define ST7789_CASET      0x2A
+#define ST7789_RASET      0x2B
+#define ST7789_RAMWR      0x2C
 
-/*=============================
-      Пользовательские функции
-==============================*/
+#define ST7789_MADCTL     0x36
+#define ST7789_COLMOD     0x3A
+#define ST7789_INVON      0x21
 
-void ST7789_Init(void);
-void ST7789_FillRectangle(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t color);
-void ST7789_DrawPixel(uint16_t x, uint16_t y, uint16_t color);
-void ST7789_FillScreen(uint16_t color);
-void ST7789_DrawHLine(uint16_t x, uint16_t y, uint16_t length, uint16_t color);
-void ST7789_DrawVLine(uint16_t x, uint16_t y, uint16_t length, uint16_t color);
-void ST7789_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
-void ST7789_DrawRectangle(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t color);
-void ST7789_DrawTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
-void ST7789_DrawCircle(uint16_t x0, uint16_t y0, uint16_t radius, uint16_t color);
 
-void ST7789_DrawChar(uint16_t x, uint16_t y, char c, const FontDef *font, uint16_t color);
-void ST7789_DrawString(uint16_t x, uint16_t y, const char *str, const FontDef *font, uint16_t color);
+/* Инициализация */
 
-void ST7789_DrawCharRUS(uint16_t x, uint16_t y, const char *c, const FontDef *font, uint16_t color);
-void ST7789_DrawStringRUS(uint16_t x, uint16_t y, const char *str, const FontDef *font, uint16_t color);
+void ST7789_Init(ST7789_HandleTypeDef *display);
+
+
+/* Графические функции */
+
+void ST7789_FillRectangle(ST7789_HandleTypeDef *display,
+                          uint16_t x, uint16_t y,
+                          uint16_t width, uint16_t height,
+                          uint16_t color);
+
+void ST7789_DrawPixel(ST7789_HandleTypeDef *display,
+                      uint16_t x, uint16_t y,
+                      uint16_t color);
+
+void ST7789_FillScreen(ST7789_HandleTypeDef *display,
+                       uint16_t color);
+
+void ST7789_DrawHLine(ST7789_HandleTypeDef *display,
+                      uint16_t x, uint16_t y,
+                      uint16_t length, uint16_t color);
+
+void ST7789_DrawVLine(ST7789_HandleTypeDef *display,
+                      uint16_t x, uint16_t y,
+                      uint16_t length, uint16_t color);
+
+void ST7789_DrawLine(ST7789_HandleTypeDef *display,
+                     uint16_t x0, uint16_t y0,
+                     uint16_t x1, uint16_t y1,
+                     uint16_t color);
+
+void ST7789_DrawRectangle(ST7789_HandleTypeDef *display,
+                          uint16_t x, uint16_t y,
+                          uint16_t width, uint16_t height,
+                          uint16_t color);
+
+void ST7789_DrawTriangle(ST7789_HandleTypeDef *display,
+                         uint16_t x0, uint16_t y0,
+                         uint16_t x1, uint16_t y1,
+                         uint16_t x2, uint16_t y2,
+                         uint16_t color);
+
+void ST7789_DrawCircle(ST7789_HandleTypeDef *display,
+                       uint16_t x0, uint16_t y0,
+                       uint16_t radius, uint16_t color);
+
+
+/* Работа со шрифтами */
+
+void ST7789_DrawChar(ST7789_HandleTypeDef *display,
+                     uint16_t x, uint16_t y,
+                     char c, const FontDef *font,
+                     uint16_t color);
+
+void ST7789_DrawString(ST7789_HandleTypeDef *display,
+                       uint16_t x, uint16_t y,
+                       const char *str,
+                       const FontDef *font,
+                       uint16_t color);
+
+void ST7789_DrawCharRUS(ST7789_HandleTypeDef *display,
+                        uint16_t x, uint16_t y,
+                        const char *c,
+                        const FontDef *font,
+                        uint16_t color);
+
+void ST7789_DrawStringRUS(ST7789_HandleTypeDef *display,
+                          uint16_t x, uint16_t y,
+                          const char *str,
+                          const FontDef *font,
+                          uint16_t color);
 
 #endif

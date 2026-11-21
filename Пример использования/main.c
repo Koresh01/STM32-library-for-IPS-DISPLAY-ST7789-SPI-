@@ -19,7 +19,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "st7789.h"
@@ -27,7 +26,6 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -44,7 +42,22 @@
 SPI_HandleTypeDef hspi1;
 
 /* USER CODE BEGIN PV */
+ST7789_HandleTypeDef display1 =
+{
+    .spi = &hspi1,
 
+    .cs_port = CS_GPIO_Port,
+    .cs_pin = CS_Pin,
+
+    .dc_port = DC_GPIO_Port,
+    .dc_pin = DC_Pin,
+
+    .res_port = RES_GPIO_Port,
+    .res_pin = GPIO_PIN_0,
+
+    .width = 240,
+    .height = 240
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -90,14 +103,26 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
-
   /* USER CODE BEGIN 2 */
-  ST7789_Init();
-  ST7789_FillScreen(ST7789_BLACK);
+  ST7789_Init(&display1);
 
-  ST7789_DrawRectangle(120-80, 120-20, 120 + 30, 120-50, ST7789_WHITE);
-  ST7789_DrawStringRUS(120 - 70, 110, "СЕРЕГА С ДНЕМ ВАРЕНЬЯ", &RusFont_5x7, ST7789_CYAN);
-  ST7789_DrawString(120 - 70, 130, "Happy BIRTHDAY!!!", &Font_5x7, ST7789_MAGENTA);
+  ST7789_FillScreen(&display1, ST7789_BLACK);
+
+  ST7789_DrawStringRUS(
+      &display1,
+      25, 110,
+      "Привет Мир!",
+      &RusFont_5x7,
+      ST7789_CYAN
+  );
+
+  ST7789_DrawString(
+      &display1,
+      25, 130,
+      "Hello World!",
+      &Font_5x7,
+      ST7789_WHITE
+  );
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -206,10 +231,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, RES_Pin|DC_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, RES_Pin|DC_Pin|CS_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : RES_Pin DC_Pin */
-  GPIO_InitStruct.Pin = RES_Pin|DC_Pin;
+  /*Configure GPIO pins : RES_Pin DC_Pin CS_Pin */
+  GPIO_InitStruct.Pin = RES_Pin|DC_Pin|CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
